@@ -1,0 +1,125 @@
+#include <iostream>
+#include <vector>
+#include <assert.h>
+
+using namespace std;
+
+int dp[100][100] = {0};
+int RC[100][100] = {0};
+vector<int> upRC;
+
+//求当前位置（i,j）处四个方向中最大的dp值
+int MAX(int up,int down,int left,int right,int center,int i,int j)
+{
+	vector<int> vec;
+	vector<int>::iterator iter;
+	int max = 0;
+
+	if((up>=0)&&(RC[i-1][j]<center))
+		vec.push_back(up);
+	if((down>=0)&&(RC[i+1][j]<center))
+		vec.push_back(down);
+	if((left>=0)&&(RC[i][j-1]<center))
+		vec.push_back(left);
+	if((right>=0)&&(RC[i][j+1]<center))
+		vec.push_back(right);
+
+	if(vec.size()==0)
+		return -1;
+	else 
+	{
+		for(iter = vec.begin();iter != vec.end();iter++)
+		{
+			if(*iter > max)
+				max = *iter;
+		}
+		return max;
+	}
+}
+//对数组进行升序排序，返回排序后的每个值的位置记录
+vector<int> upR(int A[100][100],int R,int C)
+{
+	vector<int> upA;
+
+	for(int i = 0;i<R;i++)
+		for(int j = 0;j<C;j++)
+			upA.push_back(A[i][j]);
+
+	for(int i = 0;i < R*C;i++)
+	{
+		for(int j= 0;j < R*C-i-1;j++)
+			if(upA[j]<upA[j+1])
+			{
+				int temp=upA[j];
+				upA[j]=upA[j+1];
+				upA[j+1]=temp;
+			}
+	}
+
+	vector<int>::iterator iter;
+	iter = upA.end()-1;
+	int tsize = upA.size();
+
+	while(upA.size()>0)
+	{
+		for(int i=0;i<R;i++)
+		{
+			for(int j=0;j<C;j++)
+			{
+				if(*iter==A[i][j])
+				{
+					upRC.push_back(i);
+					upRC.push_back(j);
+					upA.pop_back();
+					if(tsize>1)
+					{
+						iter = upA.end()-1;
+						tsize--;
+					}
+					else 
+						return upRC;
+				}
+			}
+		}
+	}
+}
+
+int main()
+{
+	int R,C;
+	cin>>R>>C;
+	int max=0;
+	//初始化dp
+	for(int i=0;i<R;i++)
+		for(int j=0;j<C;j++)
+			dp[i][j] = 1;	
+	//数组RC的赋值
+	for(int i=0;i<R;i++)
+		for(int j=0;j<C;j++)
+			cin>>RC[i][j];	
+	//先对RC[][]进行升序排序
+	upRC = upR(RC,R,C);
+	//再从数组RC中最小的值开始，求其dp值
+	for(int m = 0;m < 2*R*C-1;m++)
+	{
+		int i = upRC[m];
+		int j = upRC[m+1];
+		if((i-1<0)||(j<0)||(i-1>=R)||(j>=C))
+			dp[i-1][j] = -1;
+		if((i+1<0)||(j<0)||(i+1>=R)||(j>=C))
+			dp[i+1][j] = -1;
+		if((i<0)||(j-1<0)||(i>=R)||(j-1>=C))
+			dp[i][j-1] = -1;
+		if((i<0)||(j+1<0)||(i>=R)||(j+1>=C))
+			dp[i][j+1] = -1;
+		dp[i][j] = MAX(dp[i-1][j], dp[i+1][j],dp[i][j-1],dp[i][j+1],RC[i][j],i,j) + 1;//dp转换方程
+	}	
+	//找出dp中的最大值
+	for(int i=0;i<R;i++)
+		for(int j=0;j<C;j++)
+			if(max<dp[i][j])
+				max = dp[i][j];
+	cout<<max+1<<endl;
+
+	return 0;
+}
