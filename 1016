@@ -1,0 +1,131 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+vector<int> Inv(vector<int> s)
+{
+	vector<int> invsc;
+	int invc;
+
+	for(int i=0;i<=9;i++)
+	{
+		invc=0;
+		for(int j=0;j<s.size();j++)
+		{
+			if(s[j] == i)
+				invc++;
+		}
+		if(invc>0)
+		{
+			if(invc<=9)
+			{
+				invsc.push_back(invc);
+				invsc.push_back(i);
+			}
+			else
+			{
+				invsc.push_back(invc/10);
+				invsc.push_back(invc%10);
+				invsc.push_back(i);
+			}
+		}
+	}
+	return invsc;
+}
+
+bool selfInv(vector<int> s)
+{
+	if(s==Inv(s))
+		return true;
+	return false;
+}
+
+int selfInvAJ(vector<int> s,int js)
+{
+	vector<int> invsc;
+	invsc = Inv(s);
+	if(s==invsc)
+		return js;
+	else 
+		if(js<=15)
+			return selfInvAJ(invsc,++js);//返回下一次递归调用结果
+		else return 1;
+}
+
+
+int main()
+{
+	vector<string> vec;
+	string str;
+	cin>>str;
+	while(str.compare("-1"))
+	{
+		vec.push_back(str);	
+		cin>>str;
+	}
+
+	vector<string>::iterator iter;
+	for(iter = vec.begin();iter != vec.end();iter++)
+	{
+		int J=0;//控制进入哪种情况
+		vector<int> sc;
+		string::iterator siter;
+		string::iterator it;
+		for(it=(*iter).begin();it<(*iter).end();it++)
+			sc.push_back(*it-48);//将当前数字串从string类型转换为vector<int>类型
+
+		if(selfInv(sc)==true)//self_inventory时
+		{
+			cout<<*iter<<" is self-inventorying"<<endl;
+			J=1;
+		}
+
+		if(J!=1)//self_inventory_after_J_steps时
+		{
+			J = selfInvAJ(sc,0);
+			if(J>=2)
+			{
+				cout<<*iter<<" is self-inventorying after "<<J<<" steps"<<endl;
+				J=2;
+			}
+			else J=0;
+		}
+
+		if((J!=2)&&(J!=1))//enters an inventory loop of length时
+		{
+			vector<vector<int>> temp;
+			//计算15次转换，结果保存到temp中
+			for(int m=0;m<15;m++)
+			{
+				sc = Inv(sc);
+				temp.push_back(sc);
+			}
+			//进行两两比较
+			for(int k=2;k<14;k++)
+			{
+				for(int i=0;i<15-k;i++)
+				{
+					for(int j=k;j<15;j++)
+					{
+						if(temp[j-k]==temp[j])
+						{
+							cout<<*iter<<" enters an inventory loop of length "<<k<<endl;
+							J=3;
+							break;
+						}
+					}
+					if(J==3)
+						break;
+				}
+				if(J==3)
+					break;
+			}
+		}
+
+		if(J==0)// can not be classified after 15 iterations时
+			cout<<*iter<<" can not be classified after 15 iterations"<<endl;
+	}
+	return 0;
+}
